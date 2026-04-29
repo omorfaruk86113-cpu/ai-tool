@@ -3,321 +3,329 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Facebook Post Generator</title>
+  <title>AI Post Generator Premium</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #0f0f0f;
+      background: #0a0a0a;
       color: #e0e0e0;
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
       padding: 1rem;
     }
-
-    .container {
+    .app {
+      max-width: 800px;
       width: 100%;
-      max-width: 700px;
-      background: #1a1a1a;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
-
-    h1 {
+    header {
       text-align: center;
-      margin-bottom: 1.5rem;
-      font-weight: 600;
-      background: linear-gradient(135deg, #a68eff, #6e9aff);
+      padding: 1rem;
+    }
+    header h1 {
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      font-size: 2rem;
     }
-
-    .brand-tabs {
+    .tabs {
       display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
+      background: #1e1e1e;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 0.8rem;
+      background: transparent;
+      border: none;
+      color: #999;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      background: #2a2a2a;
+      color: #fff;
+      box-shadow: inset 0 -2px 0 #3b82f6;
+    }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid #2a2a2a;
     }
 
-    .tab {
+    .brand-select {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .brand-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
       background: #2a2a2a;
       border: none;
       color: #ccc;
-      padding: 0.6rem 1.2rem;
-      border-radius: 2rem;
       cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s;
     }
+    .brand-chip.active { background: #3b82f6; color: #fff; }
 
-    .tab.active {
-      background: #6e9aff;
-      color: #fff;
-    }
-
-    .input-group {
+    .input-row {
       display: flex;
-      gap: 0.8rem;
-      margin-bottom: 1.5rem;
+      gap: 0.5rem;
     }
-
-    #topicInput {
-      flex: 1;
-      padding: 0.8rem 1rem;
-      border-radius: 2rem;
-      border: 1px solid #333;
+    input, textarea, select {
       background: #2a2a2a;
+      border: 1px solid #333;
       color: #fff;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
       font-size: 1rem;
-      outline: none;
-      transition: border 0.2s;
     }
-
-    #topicInput:focus {
-      border-color: #6e9aff;
-    }
-
-    #generateBtn {
-      background: #6e9aff;
+    #topicInput { flex: 1; }
+    .btn {
+      padding: 0.7rem 1.4rem;
+      background: #3b82f6;
       border: none;
+      border-radius: 8px;
       color: #fff;
-      padding: 0.8rem 1.8rem;
-      border-radius: 2rem;
-      cursor: pointer;
       font-weight: 600;
-      transition: background 0.2s;
+      cursor: pointer;
+      transition: 0.2s;
     }
+    .btn:disabled { opacity: 0.5; }
 
-    #generateBtn:hover {
-      background: #5a7de0;
-    }
-
-    #generateBtn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .output-area {
-      display: none;
-      margin-top: 2rem;
-    }
-
-    .image-wrapper {
+    .output { display: none; margin-top: 1rem; }
+    .image-box {
       width: 100%;
-      max-width: 400px;
-      margin: 0 auto 1.5rem;
       border-radius: 12px;
       overflow: hidden;
-      border: 2px solid #333;
-      position: relative;
-    }
-
-    #resultImage {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .image-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 0.8rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      background: #2a2a2a;
-      border: 1px solid #444;
-      color: #e0e0e0;
-      padding: 0.5rem 1.2rem;
-      border-radius: 2rem;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.2s;
-    }
-
-    .btn:hover {
-      background: #3a3a3a;
-    }
-
-    .content-box {
-      background: #1e1e1e;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .caption {
-      font-size: 1.1rem;
       margin-bottom: 1rem;
-      line-height: 1.6;
     }
-
-    .quote {
-      font-style: italic;
-      color: #b8b8ff;
-      font-size: 1.3rem;
-      margin-bottom: 1rem;
-      border-left: 3px solid #6e9aff;
-      padding-left: 1rem;
-    }
-
-    .hashtags {
-      color: #9acaff;
-      word-break: break-all;
-    }
-
-    .copy-btn {
-      margin-top: 0.5rem;
-      background: #6e9aff;
-      color: #fff;
-      border: none;
-    }
-
-    .copy-btn:hover {
-      background: #5a7de0;
-    }
-
+    .image-box img { width: 100%; height: auto; }
+    .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .quote { font-style: italic; color: #a5b4fc; border-left: 3px solid #3b82f6; padding-left: 1rem; margin: 1rem 0; }
+    .hashtags { color: #67e8f9; }
     .loader {
-      border: 4px solid #2a2a2a;
-      border-top: 4px solid #6e9aff;
+      border: 3px solid #333;
+      border-top: 3px solid #3b82f6;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 30px;
+      height: 30px;
       animation: spin 1s linear infinite;
-      margin: 2rem auto;
+      margin: 1rem auto;
     }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .error-msg {
-      color: #ff6b6b;
-      text-align: center;
-      margin: 1rem 0;
-      font-size: 0.9rem;
-    }
-
-    @media (max-width: 500px) {
-      .input-group {
-        flex-direction: column;
-      }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .chat-messages { max-height: 400px; overflow-y: auto; margin-bottom: 1rem; }
+    .msg { margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 8px; background: #2a2a2a; }
+    .msg.user { background: #1e3a5f; }
+    .settings-grid { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 600px) { .settings-grid { grid-template-columns: 1fr; } .input-row { flex-direction: column; } }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>✨ AI Post Generator</h1>
+  <div class="app">
+    <header>
+      <h1>✨ AI Post Generator Premium</h1>
+    </header>
 
-    <!-- Brand Tabs -->
-    <div class="brand-tabs">
-      <button class="tab active" data-brand="meow">🐱 Meow</button>
-      <button class="tab" data-brand="sad">😢 Sad</button>
-      <button class="tab" data-brand="motivation">💪 Motivation</button>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="generator">Generator</button>
+      <button class="tab-btn" data-tab="chat">💬 Chat</button>
+      <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
     </div>
 
-    <!-- Input & Generate -->
-    <div class="input-group">
-      <input type="text" id="topicInput" placeholder="Enter your topic..." />
-      <button id="generateBtn">Generate</button>
+    <!-- Generator Panel -->
+    <div class="panel active" id="generator-panel">
+      <div class="card">
+        <div class="brand-select" id="brandSelect">
+          <button class="brand-chip active" data-brand="meow">🐱 Meow</button>
+          <button class="brand-chip" data-brand="sad">😢 Sad</button>
+          <button class="brand-chip" data-brand="motivation">💪 Motivation</button>
+        </div>
+        <div class="input-row">
+          <input type="text" id="topicInput" placeholder="Enter your topic..." />
+          <select id="langSelect">
+            <option value="en">English</option>
+            <option value="bn">বাংলা</option>
+          </select>
+          <button class="btn" id="generateBtn">Generate</button>
+        </div>
+        <div id="loader" class="loader" style="display:none"></div>
+        <div class="output" id="outputArea">
+          <div class="image-box"><img id="resultImage" src="" alt="AI Image" /></div>
+          <div class="actions">
+            <button class="btn" id="downloadBtn">⬇ Download Image</button>
+            <button class="btn" id="copyBtn">📋 Copy Text</button>
+          </div>
+          <div id="captionText"></div>
+          <div class="quote" id="quoteText"></div>
+          <div class="hashtags" id="hashtagsText"></div>
+          <div id="errorMsg" style="color:#ff6b6b; margin-top:0.5rem;"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Loading spinner (hidden by default) -->
-    <div id="loader" class="loader" style="display: none;"></div>
-
-    <!-- Output area (hidden until results) -->
-    <div id="outputArea" class="output-area">
-      <!-- Image + download -->
-      <div class="image-wrapper">
-        <img id="resultImage" src="" alt="AI generated image" />
+    <!-- Chat Panel -->
+    <div class="panel" id="chat-panel">
+      <div class="card">
+        <div id="chatMessages" class="chat-messages"></div>
+        <div class="input-row">
+          <textarea id="chatInput" rows="1" placeholder="Ask for post ideas..."></textarea>
+          <button class="btn" id="sendChatBtn">Send</button>
+        </div>
       </div>
-      <div class="image-buttons">
-        <button id="downloadBtn" class="btn">⬇️ Download Image</button>
-      </div>
+    </div>
 
-      <!-- Text content -->
-      <div class="content-box">
-        <div class="caption" id="captionText"></div>
-        <div class="quote" id="quoteText"></div>
-        <div class="hashtags" id="hashtagsText"></div>
-        <button id="copyBtn" class="btn copy-btn">📋 Copy All</button>
+    <!-- Settings Panel -->
+    <div class="panel" id="settings-panel">
+      <div class="card">
+        <h3>API Configuration</h3>
+        <p style="color:#999; font-size:0.9rem;">Keys are stored locally in your browser.</p>
+        <div class="settings-grid">
+          <div>
+            <label>OpenAI API Key</label>
+            <input type="password" id="openaiKeyInput" placeholder="sk-..." />
+          </div>
+          <div>
+            <label>Stability AI Key</label>
+            <input type="password" id="stabilityKeyInput" placeholder="sk-..." />
+          </div>
+          <div>
+            <label>Text Model</label>
+            <select id="textModelSelect">
+              <option value="gpt-4o-mini">GPT-4o-mini</option>
+              <option value="gpt-4o">GPT-4o</option>
+            </select>
+          </div>
+          <div>
+            <label>Image Model</label>
+            <select id="imageModelSelect">
+              <option value="dall-e-3">DALL·E 3 (OpenAI)</option>
+              <option value="stable-diffusion-xl">Stable Diffusion XL</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" id="saveSettingsBtn" style="margin-top:1rem;">Save Settings</button>
+        <span id="settingsStatus" style="margin-left:1rem; color:#4ade80;"></span>
       </div>
-
-      <!-- Error display -->
-      <div id="errorMsg" class="error-msg"></div>
     </div>
   </div>
 
   <script>
-    (function() {
+    (() => {
+      // ----- State -----
+      let currentBrand = 'meow';
+      let currentTab = 'generator';
+
+      // DOM elements
+      const tabs = document.querySelectorAll('.tab-btn');
+      const panels = document.querySelectorAll('.panel');
+      const brandChips = document.querySelectorAll('.brand-chip');
       const topicInput = document.getElementById('topicInput');
+      const langSelect = document.getElementById('langSelect');
       const generateBtn = document.getElementById('generateBtn');
       const loader = document.getElementById('loader');
       const outputArea = document.getElementById('outputArea');
       const resultImage = document.getElementById('resultImage');
       const downloadBtn = document.getElementById('downloadBtn');
+      const copyBtn = document.getElementById('copyBtn');
       const captionText = document.getElementById('captionText');
       const quoteText = document.getElementById('quoteText');
       const hashtagsText = document.getElementById('hashtagsText');
-      const copyBtn = document.getElementById('copyBtn');
       const errorMsg = document.getElementById('errorMsg');
 
-      // Brand selection
-      const tabs = document.querySelectorAll('.tab');
-      let currentBrand = 'meow';
+      // Chat
+      const chatMessages = document.getElementById('chatMessages');
+      const chatInput = document.getElementById('chatInput');
+      const sendChatBtn = document.getElementById('sendChatBtn');
 
+      // Settings
+      const openaiKeyInput = document.getElementById('openaiKeyInput');
+      const stabilityKeyInput = document.getElementById('stabilityKeyInput');
+      const textModelSelect = document.getElementById('textModelSelect');
+      const imageModelSelect = document.getElementById('imageModelSelect');
+      const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+      const settingsStatus = document.getElementById('settingsStatus');
+
+      // ----- Helper: load/save settings from localStorage -----
+      function loadSettings() {
+        const s = JSON.parse(localStorage.getItem('ai_post_settings') || '{}');
+        openaiKeyInput.value = s.openaiKey || '';
+        stabilityKeyInput.value = s.stabilityKey || '';
+        textModelSelect.value = s.textModel || 'gpt-4o-mini';
+        imageModelSelect.value = s.imageModel || 'dall-e-3';
+      }
+      function saveSettings() {
+        const s = {
+          openaiKey: openaiKeyInput.value.trim(),
+          stabilityKey: stabilityKeyInput.value.trim(),
+          textModel: textModelSelect.value,
+          imageModel: imageModelSelect.value
+        };
+        localStorage.setItem('ai_post_settings', JSON.stringify(s));
+        settingsStatus.textContent = 'Saved!';
+        setTimeout(() => settingsStatus.textContent = '', 2000);
+      }
+      loadSettings();
+
+      // ----- Tab switching -----
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
           tabs.forEach(t => t.classList.remove('active'));
+          panels.forEach(p => p.classList.remove('active'));
           tab.classList.add('active');
-          currentBrand = tab.dataset.brand;
+          document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+          currentTab = tab.dataset.tab;
         });
       });
 
-      // Generate handler
+      // ----- Brand selector -----
+      brandChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          brandChips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentBrand = chip.dataset.brand;
+        });
+      });
+
+      // ----- Generate Post -----
       generateBtn.addEventListener('click', async () => {
         const topic = topicInput.value.trim();
-        if (!topic) {
-          alert('Please enter a topic.');
-          return;
-        }
-
-        // Show loader, hide previous output
+        if (!topic) return alert('Enter a topic.');
+        const settings = JSON.parse(localStorage.getItem('ai_post_settings') || '{}');
         loader.style.display = 'block';
         outputArea.style.display = 'none';
         errorMsg.textContent = '';
         generateBtn.disabled = true;
 
         try {
-          const response = await fetch('/api/generate', {
+          const res = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topic, brand: currentBrand })
+            body: JSON.stringify({
+              topic,
+              brand: currentBrand,
+              language: langSelect.value,
+              textModel: settings.textModel || 'gpt-4o-mini',
+              imageModel: settings.imageModel || 'dall-e-3',
+              openaiKey: settings.openaiKey || undefined,
+              stabilityKey: settings.stabilityKey || undefined
+            })
           });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.error || 'Request failed');
-          }
-
-          // Populate text fields
+          const data = await res.json();
           captionText.textContent = data.caption || '';
           quoteText.textContent = data.quote || '';
           hashtagsText.textContent = data.hashtags || '';
-
-          // Handle image
           if (data.imageUrl) {
             resultImage.src = data.imageUrl;
             downloadBtn.style.display = 'inline-block';
@@ -325,63 +333,83 @@
             resultImage.src = '';
             downloadBtn.style.display = 'none';
           }
-
-          // Show any errors
-          let errors = [];
-          if (data.errors?.text) errors.push(data.errors.text);
-          if (data.errors?.image) errors.push(data.errors.image);
-          errorMsg.textContent = errors.join(' | ');
-
-          // Reveal output
+          const errs = [data.errors?.text, data.errors?.image].filter(e => e).join(' | ');
+          errorMsg.textContent = errs;
           outputArea.style.display = 'block';
-        } catch (err) {
-          errorMsg.textContent = err.message || 'Something went wrong.';
+        } catch (e) {
+          errorMsg.textContent = 'Network error.';
           outputArea.style.display = 'block';
-          // Clear old content
-          captionText.textContent = '';
-          quoteText.textContent = '';
-          hashtagsText.textContent = '';
-          resultImage.src = '';
-          downloadBtn.style.display = 'none';
         } finally {
           loader.style.display = 'none';
           generateBtn.disabled = false;
         }
       });
 
-      // Copy all text
+      // Copy
       copyBtn.addEventListener('click', () => {
-        const fullText = `${captionText.textContent}\n\n"${quoteText.textContent}"\n\n${hashtagsText.textContent}`;
-        navigator.clipboard.writeText(fullText).then(() => {
+        const txt = `${captionText.textContent}\n"${quoteText.textContent}"\n${hashtagsText.textContent}`;
+        navigator.clipboard.writeText(txt).then(() => {
           copyBtn.textContent = '✅ Copied!';
-          setTimeout(() => { copyBtn.textContent = '📋 Copy All'; }, 2000);
+          setTimeout(() => copyBtn.textContent = '📋 Copy Text', 1500);
         });
       });
 
-      // Download image (fetch → blob → save)
+      // Download image
       downloadBtn.addEventListener('click', async () => {
-        const url = resultImage.src;
-        if (!url) {
-          alert('No image to download.');
+        if (!resultImage.src) return;
+        if (resultImage.src.startsWith('data:')) {
+          const a = document.createElement('a');
+          a.href = resultImage.src;
+          a.download = `ai-image-${Date.now()}.png`;
+          a.click();
           return;
         }
         try {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error('Network error');
-          const blob = await response.blob();
-          const blobUrl = URL.createObjectURL(blob);
-
+          const blob = await fetch(resultImage.src).then(r => r.blob());
+          const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
-          a.href = blobUrl;
+          a.href = url;
           a.download = `ai-image-${Date.now()}.png`;
-          document.body.appendChild(a);
           a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(blobUrl);
-        } catch (e) {
-          alert('Download failed. Right-click the image and choose "Save image as...".');
+          URL.revokeObjectURL(url);
+        } catch {
+          alert('Right-click the image and "Save image as..."');
         }
       });
+
+      // ----- Chat -----
+      let chatHistory = [];
+      sendChatBtn.addEventListener('click', sendChat);
+      chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+
+      async function sendChat() {
+        const msg = chatInput.value.trim();
+        if (!msg) return;
+        const settings = JSON.parse(localStorage.getItem('ai_post_settings') || '{}');
+        chatMessages.innerHTML += `<div class="msg user"><strong>You:</strong> ${msg}</div>`;
+        chatInput.value = '';
+        chatHistory.push({ role: 'user', content: msg });
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: chatHistory, openaiKey: settings.openaiKey })
+          });
+          const data = await res.json();
+          if (data.reply) {
+            chatHistory.push({ role: 'assistant', content: data.reply });
+            chatMessages.innerHTML += `<div class="msg"><strong>AI:</strong> ${data.reply}</div>`;
+          } else {
+            chatMessages.innerHTML += `<div class="msg" style="color:#ff6b6b;">Error: ${data.error}</div>`;
+          }
+        } catch {
+          chatMessages.innerHTML += `<div class="msg" style="color:#ff6b6b;">Network error.</div>`;
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      // Settings save
+      saveSettingsBtn.addEventListener('click', saveSettings);
     })();
   </script>
 </body>
