@@ -1,134 +1,148 @@
 // api/generate.js
 export default async function handler(req, res) {
-  // CORS headers – adjust if needed
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  const {
+    topic,
+    brand,
+    language = 'en',
+    textModel = 'gpt-4o-mini',
+    imageModel = 'dall-e-3',
+    openaiKey,
+    stabilityKey
+  } = req.body;
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (!topic || !brand) return res.status(400).json({ error: 'Missing topic or brand' });
 
-  const { topic, brand } = req.body;
-  if (!topic || !brand) {
-    return res.status(400).json({ error: 'Missing topic or brand' });
-  }
+  // API keys: প্রথমে request থেকে, না থাকলে environment variable
+  const OPENAI_KEY = openaiKey || process.env.OPENAI_API_KEY;
+  const STABILITY_KEY = stabilityKey || process.env.STABILITY_API_KEY;
 
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-  if (!OPENAI_API_KEY) {
-    return res.status(500).json({ error: 'API key not configured' });
-  }
-
-  // ---------- 1. Prepare prompts based on brand ----------
   const brandStyles = {
-    meow: {
-      textStyle: "cute, playful, cat-themed",
-      imageStyle: "a cute cat illustration or photo, soft pastel colors, whimsical"
-    },
-    sad: {
-      textStyle: "melancholy, emotional, deep",
-      imageStyle: "dark moody photography, rain, solitude, cinematic"
-    },
-    motivation: {
-      textStyle: "inspirational, uplifting, energetic",
-      imageStyle: "bright sunrise, mountain summit, vibrant colors, achievement"
-    }
+    meow: { text: "cute, playful, cat-themed", image: "cute cat illustration, soft pastels" },
+    sad: { text: "melancholy, emotional, deep", image: "dark moody, rain, solitude" },
+    motivation: { text: "inspirational, uplifting", image: "bright sunrise, achievement" }
   };
-
   const style = brandStyles[brand.toLowerCase()] || brandStyles.motivation;
 
-  // Text prompt – generate structured JSON
-  const textPrompt = `Create a Facebook post in ${style.textStyle} tone about: "${topic}".
-Respond ONLY with a valid JSON object containing exactly these three fields:
+  const langInstruction = language === 'bn'
+    ? 'Output ONLY in Bengali (Bangla script).'
+    : 'Output ONLY in English.';
+
+  // ---------- TEXT PROMPT ----------
+  const textPrompt = `Create a Facebook post in ${style.text} tone about: "${topic}". ${langInstruction}
+Respond with a JSON object with these fields. Do not include any other text.
 {
-  "caption": "the main caption (2-3 sentences)",
-  "quote": "a short motivational/philosophical quote suitable for image overlay (max 10 words)",
-  "hashtags": "5 relevant hashtags separated by spaces, include #"
+  "caption": "main caption (2-3 sentences)",
+  "quote": "short quote (max 10 words)",
+  "hashtags": "5 hashtags with #"
 }`;
 
-  // Image prompt
-  const imagePrompt = `Create a social media image about "${topic}". Style: ${style.imageStyle}. High quality, suitable for Facebook post.`;
+  let caption = '', quote = '', hashtags = '', textError = null;
 
-  // ---------- 2. Call both APIs in parallel (with error isolation) ----------
-  const [textResult, imageResult] = await Promise.allSettled([
-    fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',          // reliable, fast, cost-effective
-        messages: [{ role: 'user', content: textPrompt }],
-        temperature: 0.8,
-        max_tokens: 500
-      })
-    }),
-    fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-image-1',          // as requested
-        prompt: imagePrompt,
-        n: 1,
-        size: '1024x1024'
-      })
-    })
-  ]);
-
-  // ---------- 3. Parse text response ----------
-  let caption = '', quote = '', hashtags = '';
-  let textError = null;
-
-  if (textResult.status === 'fulfilled') {
-    const textRes = await textResult.value.json();
-    if (textRes.choices && textRes.choices[0]?.message?.content) {
-      try {
-        const parsed = JSON.parse(textRes.choices[0].message.content);
-        caption = parsed.caption || '';
-        quote = parsed.quote || '';
-        hashtags = parsed.hashtags || '';
-      } catch (e) {
-        textError = 'Failed to parse AI text response.';
+  if (OPENAI_KEY) {
+    try {
+      const textRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_KEY}` },
+        body: JSON.stringify({
+          model: textModel,
+          messages: [{ role: 'user', content: textPrompt }],
+          temperature: 0.8,
+          max_tokens: 500
+        })
+      });
+      const data = await textRes.json();
+      if (data.choices?.[0]?.message?.content) {
+        const raw = data.choices[0].message.content.trim();
+        try {
+          const parsed = JSON.parse(raw);
+          caption = parsed.caption || '';
+          quote = parsed.quote || '';
+          hashtags = parsed.hashtags || '';
+        } catch {
+          // Fallback regex extraction
+          caption = (raw.match(/"caption"\s*:\s*"([^"]+)"/) || [])[1] || '';
+          quote = (raw.match(/"quote"\s*:\s*"([^"]+)"/) || [])[1] || '';
+          hashtags = (raw.match(/"hashtags"\s*:\s*"([^"]+)"/) || [])[1] || '';
+        }
+      } else {
+        textError = 'Text API returned empty content.';
       }
-    } else {
-      textError = 'No text content from AI.';
+    } catch (e) {
+      textError = `Text request failed: ${e.message}`;
     }
   } else {
-    textError = `Text generation failed: ${textResult.reason}`;
+    textError = 'No OpenAI API key provided.';
   }
 
-  // ---------- 4. Parse image response ----------
-  let imageUrl = null;
-  let imageError = null;
+  // ---------- IMAGE PROMPT ----------
+  const imagePrompt = `A high-quality Facebook post image about "${topic}". Style: ${style.image}. ${
+    language === 'bn' ? 'Include Bengali text if suitable.' : ''
+  }`;
+  let imageUrl = null, imageError = null;
 
-  if (imageResult.status === 'fulfilled') {
-    const imgRes = await imageResult.value.json();
-    if (imgRes.data && imgRes.data[0]?.url) {
-      imageUrl = imgRes.data[0].url;
-    } else {
-      imageError = 'AI did not return an image URL.';
+  // Try image models in order (DALL-E if OpenAI key, then Stability if key)
+  if (OPENAI_KEY && (imageModel === 'dall-e-3' || imageModel === 'dall-e-2')) {
+    try {
+      const imgRes = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_KEY}` },
+        body: JSON.stringify({
+          model: imageModel,
+          prompt: imagePrompt,
+          n: 1,
+          size: '1024x1024'
+        })
+      });
+      const imgData = await imgRes.json();
+      if (imgData.data?.[0]?.url) {
+        imageUrl = imgData.data[0].url;
+      } else {
+        imageError = imgData.error?.message || 'DALL-E did not return a URL.';
+      }
+    } catch (e) {
+      imageError = `DALL-E request failed: ${e.message}`;
+    }
+  } else if (STABILITY_KEY && (imageModel === 'stable-diffusion-xl' || imageModel === 'stable-diffusion')) {
+    try {
+      const imgRes = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${STABILITY_KEY}`
+        },
+        body: JSON.stringify({
+          text_prompts: [{ text: imagePrompt }],
+          cfg_scale: 7,
+          height: 1024,
+          width: 1024,
+          samples: 1
+        })
+      });
+      const imgData = await imgRes.json();
+      if (imgData.artifacts?.[0]?.base64) {
+        imageUrl = `data:image/png;base64,${imgData.artifacts[0].base64}`;
+      } else {
+        imageError = imgData.message || 'Stability AI did not return an image.';
+      }
+    } catch (e) {
+      imageError = `Stability API request failed: ${e.message}`;
     }
   } else {
-    imageError = `Image generation failed: ${imageResult.reason}`;
+    imageError = 'No valid image API key or model specified.';
   }
 
-  // ---------- 5. Return unified response ----------
+  // Fallback to a default image if all fail? (we won't, just report)
   return res.status(200).json({
     caption,
     quote,
     hashtags,
     imageUrl,
-    errors: {
-      text: textError,
-      image: imageError
-    }
+    errors: { text: textError, image: imageError }
   });
-}
+    }
