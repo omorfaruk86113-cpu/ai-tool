@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AI Tool</title>
+<style>
+body{background:#111;color:#fff;text-align:center;font-family:Arial}
+input,button{padding:10px;margin:5px}
+.box{margin-top:20px;white-space:pre-line}
+</style>
+</head>
+<body>
+
+<h2>🔥 AI Post Generator</h2>
+
+<input id="topic" placeholder="Enter topic..." style="width:60%">
+<br>
+<button onclick="generate()">Generate</button>
+
+<div id="result" class="box"></div>
+
+<script>
+async function generate(){
+  const topic = document.getElementById("topic").value;
+
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: {"Content-Type":"application
