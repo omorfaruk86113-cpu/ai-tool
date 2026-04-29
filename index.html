@@ -2,27 +2,131 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AI Tool</title>
+<title>AI Tool Pro</title>
+
 <style>
-body{background:#111;color:#fff;text-align:center;font-family:Arial}
-input,button{padding:10px;margin:5px}
-.box{margin-top:20px;white-space:pre-line}
+body {
+  background: #0f172a;
+  color: #fff;
+  font-family: Arial;
+  text-align: center;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding-top: 50px;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+input {
+  width: 80%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: #6366f1;
+  color: white;
+}
+
+.tabs button {
+  background: #1e293b;
+}
+
+.active {
+  background: #6366f1 !important;
+}
+
+.card {
+  background: #1e293b;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.copy {
+  background: #22c55e;
+}
+
 </style>
+
 </head>
+
 <body>
 
-<h2>🔥 AI Post Generator</h2>
+<div class="container">
 
-<input id="topic" placeholder="Enter topic..." style="width:60%">
+<h2>🔥 AI Post Generator Pro</h2>
+
+<div class="tabs">
+  <button onclick="setBrand('funny', event)" class="active">🐱 Meow</button>
+  <button onclick="setBrand('sad', event)">💔 Sad</button>
+  <button onclick="setBrand('motivation', event)">💡 Motivation</button>
+</div>
+
 <br>
+
+<input id="topic" placeholder="Enter topic...">
+
+<br>
+
 <button onclick="generate()">Generate</button>
 
-<div id="result" class="box"></div>
+<div id="result"></div>
+
+</div>
 
 <script>
-async function generate(){
-  const topic = document.getElementById("topic").value;
 
-  const res = await fetch("/api/generate", {
-    method: "POST",
-    headers: {"Content-Type":"application
+let brand = "funny";
+
+function setBrand(b, e){
+  brand = b;
+  document.querySelectorAll(".tabs button").forEach(btn=>btn.classList.remove("active"));
+  e.target.classList.add("active");
+}
+
+async function generate(){
+
+const topic = document.getElementById("topic").value;
+
+document.getElementById("result").innerHTML = "⏳ Generating...";
+
+const res = await fetch("/api/generate", {
+  method: "POST",
+  headers: {"Content-Type":"application/json"},
+  body: JSON.stringify({topic, brand})
+});
+
+const data = await res.json();
+
+document.getElementById("result").innerHTML = `
+<div class="card">
+<pre>${data.text}</pre>
+<button class="copy" onclick="copyText()">Copy</button>
+</div>
+`;
+
+}
+
+function copyText(){
+  const text = document.querySelector("pre").innerText;
+  navigator.clipboard.writeText(text);
+  alert("Copied!");
+}
+
+</script>
+
+</body>
+</html>
