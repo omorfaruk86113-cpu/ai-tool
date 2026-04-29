@@ -1,132 +1,388 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AI Tool Pro</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Facebook Post Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-<style>
-body {
-  background: #0f172a;
-  color: #fff;
-  font-family: Arial;
-  text-align: center;
-}
+    body {
+      background: #0f0f0f;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
 
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding-top: 50px;
-}
+    .container {
+      width: 100%;
+      max-width: 700px;
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
 
-h2 {
-  margin-bottom: 20px;
-}
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #a68eff, #6e9aff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-input {
-  width: 80%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-}
+    .brand-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
 
-button {
-  padding: 10px 20px;
-  margin: 10px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  background: #6366f1;
-  color: white;
-}
+    .tab {
+      background: #2a2a2a;
+      border: none;
+      color: #ccc;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
 
-.tabs button {
-  background: #1e293b;
-}
+    .tab.active {
+      background: #6e9aff;
+      color: #fff;
+    }
 
-.active {
-  background: #6366f1 !important;
-}
+    .input-group {
+      display: flex;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
 
-.card {
-  background: #1e293b;
-  padding: 15px;
-  margin-top: 20px;
-  border-radius: 10px;
-  text-align: left;
-}
+    #topicInput {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border-radius: 2rem;
+      border: 1px solid #333;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.2s;
+    }
 
-.copy {
-  background: #22c55e;
-}
+    #topicInput:focus {
+      border-color: #6e9aff;
+    }
 
-</style>
+    #generateBtn {
+      background: #6e9aff;
+      border: none;
+      color: #fff;
+      padding: 0.8rem 1.8rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
 
+    #generateBtn:hover {
+      background: #5a7de0;
+    }
+
+    #generateBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .output-area {
+      display: none;
+      margin-top: 2rem;
+    }
+
+    .image-wrapper {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto 1.5rem;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #333;
+      position: relative;
+    }
+
+    #resultImage {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .image-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #e0e0e0;
+      padding: 0.5rem 1.2rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: #3a3a3a;
+    }
+
+    .content-box {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .caption {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .quote {
+      font-style: italic;
+      color: #b8b8ff;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      border-left: 3px solid #6e9aff;
+      padding-left: 1rem;
+    }
+
+    .hashtags {
+      color: #9acaff;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      margin-top: 0.5rem;
+      background: #6e9aff;
+      color: #fff;
+      border: none;
+    }
+
+    .copy-btn:hover {
+      background: #5a7de0;
+    }
+
+    .loader {
+      border: 4px solid #2a2a2a;
+      border-top: 4px solid #6e9aff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 2rem auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-msg {
+      color: #ff6b6b;
+      text-align: center;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 500px) {
+      .input-group {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <h1>✨ AI Post Generator</h1>
 
-<div class="container">
+    <!-- Brand Tabs -->
+    <div class="brand-tabs">
+      <button class="tab active" data-brand="meow">🐱 Meow</button>
+      <button class="tab" data-brand="sad">😢 Sad</button>
+      <button class="tab" data-brand="motivation">💪 Motivation</button>
+    </div>
 
-<h2>🔥 AI Post Generator Pro</h2>
+    <!-- Input & Generate -->
+    <div class="input-group">
+      <input type="text" id="topicInput" placeholder="Enter your topic..." />
+      <button id="generateBtn">Generate</button>
+    </div>
 
-<div class="tabs">
-  <button onclick="setBrand('funny', event)" class="active">🐱 Meow</button>
-  <button onclick="setBrand('sad', event)">💔 Sad</button>
-  <button onclick="setBrand('motivation', event)">💡 Motivation</button>
-</div>
+    <!-- Loading spinner (hidden by default) -->
+    <div id="loader" class="loader" style="display: none;"></div>
 
-<br>
+    <!-- Output area (hidden until results) -->
+    <div id="outputArea" class="output-area">
+      <!-- Image + download -->
+      <div class="image-wrapper">
+        <img id="resultImage" src="" alt="AI generated image" />
+      </div>
+      <div class="image-buttons">
+        <button id="downloadBtn" class="btn">⬇️ Download Image</button>
+      </div>
 
-<input id="topic" placeholder="Enter topic...">
+      <!-- Text content -->
+      <div class="content-box">
+        <div class="caption" id="captionText"></div>
+        <div class="quote" id="quoteText"></div>
+        <div class="hashtags" id="hashtagsText"></div>
+        <button id="copyBtn" class="btn copy-btn">📋 Copy All</button>
+      </div>
 
-<br>
+      <!-- Error display -->
+      <div id="errorMsg" class="error-msg"></div>
+    </div>
+  </div>
 
-<button onclick="generate()">Generate</button>
+  <script>
+    (function() {
+      const topicInput = document.getElementById('topicInput');
+      const generateBtn = document.getElementById('generateBtn');
+      const loader = document.getElementById('loader');
+      const outputArea = document.getElementById('outputArea');
+      const resultImage = document.getElementById('resultImage');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const captionText = document.getElementById('captionText');
+      const quoteText = document.getElementById('quoteText');
+      const hashtagsText = document.getElementById('hashtagsText');
+      const copyBtn = document.getElementById('copyBtn');
+      const errorMsg = document.getElementById('errorMsg');
 
-<div id="result"></div>
+      // Brand selection
+      const tabs = document.querySelectorAll('.tab');
+      let currentBrand = 'meow';
 
-</div>
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentBrand = tab.dataset.brand;
+        });
+      });
 
-<script>
+      // Generate handler
+      generateBtn.addEventListener('click', async () => {
+        const topic = topicInput.value.trim();
+        if (!topic) {
+          alert('Please enter a topic.');
+          return;
+        }
 
-let brand = "funny";
+        // Show loader, hide previous output
+        loader.style.display = 'block';
+        outputArea.style.display = 'none';
+        errorMsg.textContent = '';
+        generateBtn.disabled = true;
 
-function setBrand(b, e){
-  brand = b;
-  document.querySelectorAll(".tabs button").forEach(btn=>btn.classList.remove("active"));
-  e.target.classList.add("active");
-}
+        try {
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic, brand: currentBrand })
+          });
 
-async function generate(){
+          const data = await response.json();
 
-const topic = document.getElementById("topic").value;
+          if (!response.ok) {
+            throw new Error(data.error || 'Request failed');
+          }
 
-document.getElementById("result").innerHTML = "⏳ Generating...";
+          // Populate text fields
+          captionText.textContent = data.caption || '';
+          quoteText.textContent = data.quote || '';
+          hashtagsText.textContent = data.hashtags || '';
 
-const res = await fetch("/api/generate", {
-  method: "POST",
-  headers: {"Content-Type":"application/json"},
-  body: JSON.stringify({topic, brand})
-});
+          // Handle image
+          if (data.imageUrl) {
+            resultImage.src = data.imageUrl;
+            downloadBtn.style.display = 'inline-block';
+          } else {
+            resultImage.src = '';
+            downloadBtn.style.display = 'none';
+          }
 
-const data = await res.json();
+          // Show any errors
+          let errors = [];
+          if (data.errors?.text) errors.push(data.errors.text);
+          if (data.errors?.image) errors.push(data.errors.image);
+          errorMsg.textContent = errors.join(' | ');
 
-document.getElementById("result").innerHTML = `
-<div class="card">
-<pre>${data.text}</pre>
-<button class="copy" onclick="copyText()">Copy</button>
-</div>
-`;
+          // Reveal output
+          outputArea.style.display = 'block';
+        } catch (err) {
+          errorMsg.textContent = err.message || 'Something went wrong.';
+          outputArea.style.display = 'block';
+          // Clear old content
+          captionText.textContent = '';
+          quoteText.textContent = '';
+          hashtagsText.textContent = '';
+          resultImage.src = '';
+          downloadBtn.style.display = 'none';
+        } finally {
+          loader.style.display = 'none';
+          generateBtn.disabled = false;
+        }
+      });
 
-}
+      // Copy all text
+      copyBtn.addEventListener('click', () => {
+        const fullText = `${captionText.textContent}\n\n"${quoteText.textContent}"\n\n${hashtagsText.textContent}`;
+        navigator.clipboard.writeText(fullText).then(() => {
+          copyBtn.textContent = '✅ Copied!';
+          setTimeout(() => { copyBtn.textContent = '📋 Copy All'; }, 2000);
+        });
+      });
 
-function copyText(){
-  const text = document.querySelector("pre").innerText;
-  navigator.clipboard.writeText(text);
-  alert("Copied!");
-}
+      // Download image (fetch → blob → save)
+      downloadBtn.addEventListener('click', async () => {
+        const url = resultImage.src;
+        if (!url) {
+          alert('No image to download.');
+          return;
+        }
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Network error');
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
 
-</script>
-
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = `ai-image-${Date.now()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+        } catch (e) {
+          alert('Download failed. Right-click the image and choose "Save image as...".');
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
